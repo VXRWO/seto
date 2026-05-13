@@ -1,0 +1,100 @@
+{% extends 'rental/base.html' %}
+
+{% block title %}Панель администратора — СЭТО{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="h4 mb-0"><i class="bi bi-gear"></i> Панель администратора</h2>
+  <a href="/admin/" class="btn btn-outline-dark btn-sm" target="_blank">
+    Django Admin
+  </a>
+</div>
+
+<div class="mb-3 d-flex gap-2 flex-wrap">
+  <a href="{% url 'admin_bookings' %}"
+     class="btn btn-sm {% if not current_status %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+    Все
+  </a>
+  {% for value, label in status_choices %}
+    <a href="?status={{ value }}"
+       class="btn btn-sm {% if current_status == value %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+      {{ label }}
+    </a>
+  {% endfor %}
+</div>
+
+{% if bookings %}
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 small">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Мероприятие</th>
+            <th>Помещение</th>
+            <th>Пользователь</th>
+            <th>Дата</th>
+            <th>Участников</th>
+            <th>Статус</th>
+            <th>Действие</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in bookings %}
+          <tr>
+            <td class="text-muted">{{ booking.pk }}</td>
+            <td>
+              <strong>{{ booking.event_name }}</strong>
+              {% if booking.is_priority %}
+                <i class="bi bi-star-fill text-warning ms-1" title="Приоритет"></i>
+              {% endif %}
+            </td>
+            <td>
+              {{ booking.venue.name }}<br>
+              <small class="text-muted">{{ booking.venue.building.address }}</small>
+            </td>
+            <td>{{ booking.user.get_full_name|default:booking.user.username }}</td>
+            <td>
+              {{ booking.start_datetime|date:"d.m.Y" }}<br>
+              {{ booking.start_datetime|time:"H:i" }}–{{ booking.end_datetime|time:"H:i" }}
+            </td>
+            <td>{{ booking.participants_count }}</td>
+            <td>
+              <span class="badge badge-{{ booking.status }}">
+                {{ booking.get_status_display }}
+              </span>
+            </td>
+            <td>
+              <form method="post"
+                    action="{% url 'update_booking_status' booking.pk %}"
+                    class="d-flex gap-1 align-items-center">
+                {% csrf_token %}
+                <select name="status" class="form-select form-select-sm" style="width:auto">
+                  {% for value, label in status_choices %}
+                    <option value="{{ value }}"
+                      {% if booking.status == value %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <input type="text" name="admin_comment" class="form-control form-control-sm"
+                       placeholder="Комментарий" style="width:120px"
+                       value="{{ booking.admin_comment }}">
+                <button type="submit" class="btn btn-dark btn-sm">
+                  <i class="bi bi-check2"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-inbox display-4 d-block mb-3"></i>
+    <p>Нет заявок с выбранным статусом.</p>
+  </div>
+{% endif %}
+{% endblock %}

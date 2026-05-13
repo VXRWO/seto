@@ -1,0 +1,130 @@
+{% extends 'rental/base.html' %}
+
+{% block title %}{{ venue.name }} — СЭТО{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'index' %}">Помещения</a></li>
+    <li class="breadcrumb-item active">{{ venue.name }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-dark text-white">
+        <h4 class="mb-0">{{ venue.name }}</h4>
+        <small class="opacity-75">{{ venue.get_venue_type_display }}</small>
+      </div>
+      <div class="card-body">
+
+        <table class="table table-sm table-borderless">
+          <tbody>
+            {% if venue.building %}
+            <tr>
+              <td class="text-muted" width="40%">Адрес</td>
+              <td><strong>{{ venue.building.address }}</strong></td>
+            </tr>
+            {% endif %}
+            {% if venue.floor %}
+            <tr>
+              <td class="text-muted">Этаж</td>
+              <td>{{ venue.floor }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td class="text-muted">Вместимость</td>
+              <td><strong>{{ venue.capacity }} человек</strong></td>
+            </tr>
+            {% if venue.area %}
+            <tr>
+              <td class="text-muted">Площадь</td>
+              <td>{{ venue.area }} м²</td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td class="text-muted">Режим работы</td>
+              <td>{{ venue.work_start|time:"H:i" }} — {{ venue.work_end|time:"H:i" }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Стоимость</td>
+              <td class="text-success fw-semibold">
+                {% if venue.price_per_hour %}
+                  {{ venue.price_per_hour }} ₽/час
+                {% else %}
+                  Бесплатно
+                {% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        {% if venue.equipment %}
+        <hr>
+        <h6 class="text-muted">Оборудование</h6>
+        <p>{{ venue.equipment }}</p>
+        {% endif %}
+
+        {% if venue.special_conditions %}
+        <hr>
+        <h6 class="text-muted">Особые условия</h6>
+        <p class="text-warning-emphasis">
+          <i class="bi bi-exclamation-triangle"></i> {{ venue.special_conditions }}
+        </p>
+        {% endif %}
+      </div>
+      <div class="card-footer bg-white">
+        {% if user.is_authenticated %}
+          <a href="{% url 'book_venue' venue.pk %}" class="btn btn-dark">
+            <i class="bi bi-calendar-plus"></i> Забронировать
+          </a>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-dark">
+            <i class="bi bi-box-arrow-in-right"></i> Войдите для бронирования
+          </a>
+        {% endif %}
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary ms-2">← Назад</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-calendar3"></i> Ближайшие бронирования</h6>
+      </div>
+      <div class="card-body p-0">
+        {% if bookings %}
+          <ul class="list-group list-group-flush">
+            {% for b in bookings %}
+            <li class="list-group-item py-3">
+              <div class="d-flex justify-content-between">
+                <strong class="small">{{ b.event_name }}</strong>
+                <span class="badge bg-success">Подтверждено</span>
+              </div>
+
+              <div class="text-muted small mt-1">
+                <i class="bi bi-clock"></i>
+                {{ b.start_datetime|date:"d.m.Y" }}
+                {{ b.start_datetime|time:"H:i" }} —
+                {{ b.end_datetime|time:"H:i" }}
+              </div>
+              <div class="text-muted small">
+                <i class="bi bi-people"></i> {{ b.participants_count }} участников
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-center text-muted py-4">
+            <i class="bi bi-calendar-check display-6 d-block mb-2"></i>
+            <small>Нет запланированных бронирований</small>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

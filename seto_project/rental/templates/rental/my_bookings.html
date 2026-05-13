@@ -1,0 +1,96 @@
+{% extends 'rental/base.html' %}
+
+{% block title %}Мои заявки — СЭТО{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="h4 mb-0">Мои заявки на бронирование</h2>
+  <a href="{% url 'index' %}" class="btn btn-dark btn-sm">
+    <i class="bi bi-plus"></i> Новая заявка
+  </a>
+</div>
+
+{% if bookings %}
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>Мероприятие</th>
+            <th>Помещение</th>
+            <th>Дата и время</th>
+            <th>Участников</th>
+            <th>Стоимость</th>
+            <th>Статус</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in bookings %}
+          <tr>
+            <td>
+              <strong>{{ booking.event_name }}</strong>
+              {% if booking.is_priority %}
+                <span class="badge bg-warning text-dark ms-1">
+                  <i class="bi bi-star-fill"></i> Приоритет
+                </span>
+              {% endif %}
+              {% if booking.admin_comment %}
+                <div class="small text-muted mt-1">
+                  <i class="bi bi-chat-left-text"></i>
+                  Комментарий: {{ booking.admin_comment }}
+                </div>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'venue_detail' booking.venue.pk %}" class="text-decoration-none">
+                {{ booking.venue.name }}
+              </a>
+              {% if booking.venue.building %}
+                <div class="small text-muted">{{ booking.venue.building.address }}</div>
+              {% endif %}
+            </td>
+            <td class="small">
+              {{ booking.start_datetime|date:"d.m.Y" }}<br>
+              {{ booking.start_datetime|time:"H:i" }} —
+              {{ booking.end_datetime|time:"H:i" }}
+              <div class="text-muted">({{ booking.duration_hours }} ч.)</div>
+            </td>
+            <td>{{ booking.participants_count }}</td>
+            <td>
+              {% if booking.total_cost %}
+                {{ booking.total_cost }} ₽
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+
+              <span class="badge badge-{{ booking.status }}">
+                {{ booking.get_status_display }}
+              </span>
+            </td>
+            <td>
+
+              {% if booking.status == 'pending' or booking.status == 'confirmed' %}
+                <a href="{% url 'cancel_booking' booking.pk %}"
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('Отменить бронирование?')">
+                  <i class="bi bi-x-circle"></i>
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-calendar-x display-4 d-block mb-3"></i>
+    <p>У вас пока нет заявок на бронирование.</p>
+    <a href="{% url 'index' %}" class="btn btn-dark">Выбрать помещение</a>
+  </div>
+{% endif %}
+{% endblock %}

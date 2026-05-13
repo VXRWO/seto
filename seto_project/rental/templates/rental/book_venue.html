@@ -1,0 +1,97 @@
+{% extends 'rental/base.html' %}
+
+{% block title %}Бронирование — {{ venue.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'index' %}">Помещения</a></li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'venue_detail' venue.pk %}">{{ venue.name }}</a>
+        </li>
+        <li class="breadcrumb-item active">Бронирование</li>
+      </ol>
+    </nav>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-calendar-plus"></i> Заявка на бронирование
+        </h5>
+        <small class="opacity-75">{{ venue.name }}</small>
+      </div>
+
+      <div class="card-body">
+
+        <div class="alert alert-light border mb-4">
+          <div class="row g-2 small text-muted">
+            {% if venue.building %}
+            <div class="col-6">
+              <i class="bi bi-geo-alt"></i> {{ venue.building.address }}
+            </div>
+            {% endif %}
+            <div class="col-6">
+              <i class="bi bi-people"></i> До {{ venue.capacity }} чел.
+            </div>
+            {% if venue.price_per_hour %}
+            <div class="col-6">
+              <i class="bi bi-currency-exchange"></i> {{ venue.price_per_hour }} ₽/час
+            </div>
+            {% endif %}
+            <div class="col-6">
+              <i class="bi bi-clock"></i>
+              {{ venue.work_start|time:"H:i" }} — {{ venue.work_end|time:"H:i" }}
+            </div>
+          </div>
+        </div>
+
+        <form method="post" action="">
+          {% csrf_token %}
+
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="{{ field.id_for_label }}">
+              {{ field.label }}
+              {% if field.field.required %}
+                <span class="text-danger">*</span>
+              {% endif %}
+            </label>
+
+            {{ field }}
+
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+
+            {% if field.help_text %}
+              <small class="form-text text-muted">{{ field.help_text }}</small>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          {% if venue.special_conditions %}
+          <div class="alert alert-warning small">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Особые условия:</strong> {{ venue.special_conditions }}
+          </div>
+          {% endif %}
+
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-dark px-4">
+              <i class="bi bi-send"></i> Отправить заявку
+            </button>
+            <a href="{% url 'venue_detail' venue.pk %}"
+               class="btn btn-outline-secondary">Отмена</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
